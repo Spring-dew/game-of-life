@@ -37,7 +37,7 @@ large_font = pygame.font.SysFont("calibri", 36)
 title_font = pygame.font.SysFont("calibri", 70)
 
 # cell size and cell counts
-cell_size = 25
+cell_size = 15  # modify cell size to zoom in or out
 n_cells_width = (width - cell_size * 2) // cell_size
 n_cells_height = (height - cell_size * 2) // cell_size
 n_cells = n_cells_height * n_cells_width
@@ -54,6 +54,7 @@ template_scr = False
 
 highlight = None
 pause = True
+grid = False # whether to display grid lines
 
 # options for main menu
 options = ["Random", "Template", "Custom"]
@@ -259,7 +260,10 @@ while True:
         continue
 
     if game_completed:
-        overlay.fill((255, 255, 255, 20))  # Semi-transparent white
+        if grid:
+            overlay.fill((255, 255, 255, 40))
+        else:
+            overlay.fill((255, 255, 255, 20))
         game_completed_msg = large_font.render("Simulation Completed", True, LIGHTGREEN)
         game_completed_msg_rect = game_completed_msg.get_rect()
         game_completed_msg_rect.center = (width / 2), (height / 3)
@@ -381,7 +385,8 @@ while True:
     # draw cells
     for i, row in enumerate(cells):
         for j, rect in enumerate(row):
-            pygame.draw.rect(screen, BLUE, rect, 1)
+            if grid:
+                pygame.draw.rect(screen, BLUE, rect, 1)
             if game.get(j, i).alive:
                 pygame.draw.rect(screen, game.get(j, i).color, rect)
 

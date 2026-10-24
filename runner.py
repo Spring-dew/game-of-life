@@ -26,6 +26,8 @@ size = screen_size = width, height = pygame.display.get_desktop_sizes()[0]
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Game of Life")
 
+overlay = pygame.Surface(size, pygame.SRCALPHA)
+overlay.fill((255, 255, 255, 20))  # Semi-transparent white
 clock = pygame.time.Clock()
 
 # initialize fonts
@@ -35,7 +37,7 @@ large_font = pygame.font.SysFont("calibri", 36)
 title_font = pygame.font.SysFont("calibri", 70)
 
 # cell size and cell counts
-cell_size = 15  # modify cell size to zoom in or out
+cell_size = 25
 n_cells_width = (width - cell_size * 2) // cell_size
 n_cells_height = (height - cell_size * 2) // cell_size
 n_cells = n_cells_height * n_cells_width
@@ -52,7 +54,6 @@ template_scr = False
 
 highlight = None
 pause = True
-grid = False  # whether to display grid lines
 
 # options for main menu
 options = ["Random", "Template", "Custom"]
@@ -258,28 +259,33 @@ while True:
         continue
 
     if game_completed:
+        overlay.fill((255, 255, 255, 20))  # Semi-transparent white
+        game_completed_msg = large_font.render("Simulation Completed", True, LIGHTGREEN)
+        game_completed_msg_rect = game_completed_msg.get_rect()
+        game_completed_msg_rect.center = (width / 2), (height / 3)
+        overlay.blit(game_completed_msg, game_completed_msg_rect)
+
         make_shadow(
             "Restart",
             ((width / 2), (height / 2) - 35),
-            BLUE,
-            SPRINGGREEN,
+            GREY,
+            LIGHTBLUE,
             large_font,
-            screen,
+            overlay,
             shadow=highlight == "Restart",
         )
 
         make_shadow(
             "Home",
             ((width / 2), (height / 2) + 35),
-            BLUE,
-            SPRINGGREEN,
+            GREY,
+            LIGHTBLUE,
             large_font,
-            screen,
+            overlay,
             shadow=highlight == "Home",
         )
-
-        pygame.display.flip()
-        continue
+        # pygame.display.flip()
+        # continue
 
     if home:
         welcome = large_font.render("Welcome to Game of Life!", True, BLUE)
@@ -323,7 +329,6 @@ while True:
                 screen,
                 highlight == index,
             )
-
         pygame.display.flip()
         continue
 
@@ -376,8 +381,7 @@ while True:
     # draw cells
     for i, row in enumerate(cells):
         for j, rect in enumerate(row):
-            if grid:
-                pygame.draw.rect(screen, BLUE, rect, 1)
+            pygame.draw.rect(screen, BLUE, rect, 1)
             if game.get(j, i).alive:
                 pygame.draw.rect(screen, game.get(j, i).color, rect)
 
@@ -392,9 +396,17 @@ while True:
                     if rect.collidepoint(mouse):
                         game.toggle_cell(j, i)
                         break
+
+    
     # fps
     clock.tick(60)
+    if game_completed: 
+        screen.blit(overlay, (0, 0))  # Draw the overlay on top of the screen
+        pygame.display.flip()
+        continue
+    
     pygame.display.flip()
+    
     if not custom and not pause:
         # slow down update rate
         time.sleep(0.15)
